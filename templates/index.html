@@ -135,10 +135,10 @@
         <!-- Tombol untuk Membuka Kamera Langsung -->
         <button type="button" class="btn-primary" onclick="toggleCamera()">📷 Buka Kamera HP</button>
 
-        <!-- Form Utama yang terhubung langsung ke rute /upload di app.py -->
+        <!-- Form Utama -->
         <form action="/upload" method="POST" enctype="multipart/form-data">
             
-            <!-- Area Kamera (Live Stream & Tangkap Gambar) -->
+            <!-- Area Kamera -->
             <div id="camera-section">
                 <video id="video" autoplay playsinline></video>
                 <div class="camera-controls">
@@ -148,10 +148,11 @@
                 </div>
             </div>
 
-            <!-- Kotak Upload Foto / File -->
+            <!-- Kotak Upload Foto -->
             <div class="upload-box">
                 <p>📁 Upload Foto Sampah</p>
                 <input type="file" id="image" name="image" accept="image/*">
+                <p id="capture-status" style="font-size: 12px; color: #16a085; margin-top: 5px;"></p>
             </div>
 
             <button type="submit" class="btn-primary" style="width: 100%; justify-content: center;">🚀 Analisis Gambar</button>
@@ -159,7 +160,7 @@
 
         <canvas id="canvas" style="display: none;"></canvas>
 
-        <!-- Menampilkan Hasil Analisis dari Backend Flask -->
+        <!-- Menampilkan Hasil Analisis -->
         {% if result %}
         <div class="result-box">
             <h3>Hasil Analisis AI:</h3>
@@ -178,7 +179,7 @@
     </div>
 
     <script>
-        let useFrontCamera = false; // Default menggunakan kamera belakang di HP
+        let useFrontCamera = false; 
         let currentStream = null;
         let isCameraOpen = false;
 
@@ -213,8 +214,8 @@
                     videoElement.srcObject = stream;
                 })
                 .catch(err => {
-                    console.error("Gagal membuka kamera: ", err);
-                    alert("Tidak dapat mengakses kamera. Pastikan izin kamera diizinkan di browser HP.");
+                    console.error("Gagal mengakses kamera: ", err);
+                    alert("Tidak dapat mengakses kamera. Pastikan izin kamera diizinkan di browser.");
                 });
         }
 
@@ -231,24 +232,24 @@
             isCameraOpen = false;
         }
 
-        // Fungsi untuk memasukkan hasil tangkapan kamera langsung ke dalam form input file
+        // Perbaikan fungsi tangkapan kamera agar kompatibel dengan backend OpenCV
         function captureToForm() {
             const video = document.getElementById('video');
             const canvas = document.getElementById('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
+            canvas.width = video.videoWidth || 640;
+            canvas.height = video.videoHeight || 480;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
             canvas.toBlob(blob => {
-                const file = new File([blob], "captured_waste.jpg", { type: "image/jpeg" });
-                const dataTransfer = new DataTransfer();
-                dataTransfer.items.add(file);
-                document.getElementById('image').files = dataTransfer.files;
+                const file = new File([blob], "camera_capture.jpg", { type: "image/jpeg" });
+                const container = new DataTransfer();
+                container.items.add(file);
+                document.getElementById('image').files = container.files;
                 
-                alert("Foto berhasil diambil dari kamera! Silakan klik tombol 'Analisis Gambar'.");
+                document.getElementById('capture-status').innerText = "✅ Foto dari kamera berhasil dipasang!";
                 closeCamera();
-            }, "image/jpeg", 0.9);
+            }, "image/jpeg", 0.95);
         }
     </script>
 </body>
