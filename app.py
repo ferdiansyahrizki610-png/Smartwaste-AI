@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request
 import os
+import base64
 from werkzeug.utils import secure_filename
 from ultralytics import YOLO
 
@@ -68,40 +69,46 @@ def upload():
     print("PROSES ANALISIS DIMULAI")
     print("=" * 50)
 
-    # Cek file
-    if "image" not in request.files:
-        print("❌ File gambar tidak ditemukan")
+    filename = ""
+    filepath = ""
+
+    # Cek apakah gambar dikirim dari kamera langsung (Base64)
+    image_base64 = request.form.get("image_base64")
+
+    if image_base64:
+        try:
+            header, encoded = image_base64.split(",", 1)
+            data = base64.b64decode(encoded)
+            filename = "camera_capture.jpg"
+            filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+
+            with open(filepath, "wb") as f:
+                f.write(data)
+            print("✅ Gambar kamera berhasil disimpan via Base64:", filepath)
+
+        except Exception as e:
+            print("❌ Gagal memproses gambar kamera:", e)
+            return render_template(
+                "index.html",
+                error="Gagal memproses gambar dari kamera.",
+                history=history_list
+            )
+
+    # Cek apakah dikirim lewat file upload biasa
+    elif "image" in request.files and request.files["image"].filename != "":
+        file = request.files["image"]
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+        file.save(filepath)
+        print("✅ File upload berhasil disimpan:", filepath)
+
+    else:
+        print("❌ Tidak ada gambar yang dipilih")
         return render_template(
             "index.html",
-            error="Tidak ada gambar yang dipilih.",
+            error="Silakan pilih gambar atau ambil foto terlebih dahulu.",
             history=history_list
         )
-
-    file = request.files["image"]
-
-    if file.filename == "":
-        print("❌ Nama file kosong")
-        return render_template(
-            "index.html",
-            error="Silakan pilih gambar terlebih dahulu.",
-            history=history_list
-        )
-
-    # ==================================================
-    # SIMPAN GAMBAR
-    # ==================================================
-
-    filename = secure_filename(file.filename)
-
-    filepath = os.path.join(
-        app.config["UPLOAD_FOLDER"],
-        filename
-    )
-
-    file.save(filepath)
-
-    print("✅ Gambar berhasil disimpan:")
-    print(filepath)
 
     # ==================================================
     # PREDIKSI AI
@@ -132,7 +139,7 @@ def upload():
         # KOREKSI / MAPPING NAMA KELAS MANUAL
         # ==========================================
         correction_map = {
-            "plastic": "glass",  # Sesuaikan jika ada label yang tertukar saat training dulu
+            "plastic": "glass",  # Sesuaikan jika ada label yang tertukar
         }
         
         if class_name in correction_map:
@@ -178,7 +185,6 @@ def upload():
         "Pisahkan sampah berdasarkan jenisnya."
     )
 
-    # Pesan berdasarkan tingkat confidence
     if confidence_percent < 50:
         confidence_message = "⚠️ AI kurang yakin dengan hasil ini. Silakan gunakan foto yang lebih jelas."
     elif confidence_percent < 70:
@@ -196,7 +202,6 @@ def upload():
         "recommendation": recommendation
     }
     
-    # Masukkan ke urutan paling atas, batasi maksimal 5 riwayat
     history_list.insert(0, history_item)
     if len(history_list) > 5:
         history_list.pop()
@@ -217,7 +222,7 @@ def upload():
 
 
 # ==================================================
-# RUN FLASK (Disesuaikan untuk Lokal & Hosting)
+# RUN FLASK
 # ==================================================
 
 if __name__ == "__main__":
