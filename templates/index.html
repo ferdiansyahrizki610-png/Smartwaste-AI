@@ -53,7 +53,7 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         .btn-primary:hover {
             background-color: #1abc9c;
@@ -61,42 +61,31 @@
         .upload-box {
             border: 2px dashed #bdc3c7;
             border-radius: 12px;
-            padding: 30px 20px;
+            padding: 25px 20px;
             background: #fafbfc;
             margin-bottom: 20px;
-            transition: border-color 0.3s;
-        }
-        .upload-box:hover {
-            border-color: #16a085;
-        }
-        .upload-box img.icon {
-            width: 48px;
-            margin-bottom: 10px;
         }
         .upload-box p {
             font-size: 14px;
             color: #34495e;
             font-weight: 500;
-            margin-bottom: 5px;
-        }
-        .upload-box span {
-            font-size: 12px;
-            color: #95a5a6;
+            margin-bottom: 8px;
         }
         input[type="file"] {
-            margin-top: 10px;
             font-size: 13px;
+            margin-top: 5px;
         }
-        /* Area Kamera yang awalnya tersembunyi, akan muncul saat tombol Buka Kamera diklik */
         #camera-section {
             display: none;
             margin-bottom: 20px;
+            background: #000;
+            padding: 10px;
+            border-radius: 12px;
         }
         video {
             width: 100%;
-            max-height: 350px;
-            border-radius: 10px;
-            background: #000;
+            max-height: 320px;
+            border-radius: 8px;
             object-fit: cover;
         }
         .camera-controls {
@@ -109,25 +98,31 @@
             background-color: #34495e;
             color: white;
             border: none;
-            padding: 8px 15px;
-            font-size: 14px;
+            padding: 8px 14px;
+            font-size: 13px;
             border-radius: 6px;
             cursor: pointer;
-        }
-        .btn-secondary:hover {
-            background-color: #2c3e50;
         }
         .btn-danger {
             background-color: #e74c3c;
             color: white;
             border: none;
-            padding: 8px 15px;
-            font-size: 14px;
+            padding: 8px 14px;
+            font-size: 13px;
             border-radius: 6px;
             cursor: pointer;
         }
-        .btn-danger:hover {
-            background-color: #c0392b;
+        .result-box {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e8f8f5;
+            border-radius: 10px;
+            text-align: left;
+        }
+        .result-box h3 {
+            color: #16a085;
+            margin-bottom: 5px;
+            font-size: 16px;
         }
     </style>
 </head>
@@ -137,34 +132,53 @@
         <h2>🔍 Deteksi Sampah</h2>
         <p class="subtitle">Upload foto atau ambil gambar menggunakan kamera langsung untuk dianalisis.</p>
 
-        <!-- Tombol untuk Membuka Kamera -->
-        <button class="btn-primary" onclick="toggleCamera()">📷 Buka Kamera</button>
+        <!-- Tombol untuk Membuka Kamera Langsung -->
+        <button type="button" class="btn-primary" onclick="toggleCamera()">📷 Buka Kamera HP</button>
 
-        <!-- Bagian Tampilan Kamera (Live Stream) -->
-        <div id="camera-section">
-            <video id="video" autoplay playsinline></video>
-            <div class="camera-controls">
-                <button class="btn-secondary" onclick="switchCamera()">🔄 Tukar Kamera</button>
-                <button class="btn-primary" onclick="capturePhoto()">📸 Ambil & Analisis</button>
-                <button class="btn-danger" onclick="closeCamera()">❌ Tutup</button>
+        <!-- Form Utama yang terhubung langsung ke rute /upload di app.py -->
+        <form action="/upload" method="POST" enctype="multipart/form-data">
+            
+            <!-- Area Kamera (Live Stream & Tangkap Gambar) -->
+            <div id="camera-section">
+                <video id="video" autoplay playsinline></video>
+                <div class="camera-controls">
+                    <button type="button" class="btn-secondary" onclick="switchCamera()">🔄 Tukar Kamera</button>
+                    <button type="button" class="btn-primary" onclick="captureToForm()" style="margin: 0; padding: 8px 14px; font-size: 13px;">📸 Ambil Foto</button>
+                    <button type="button" class="btn-danger" onclick="closeCamera()">❌ Tutup</button>
+                </div>
             </div>
-        </div>
 
-        <!-- Kotak Upload Foto Asli -->
-        <div class="upload-box">
-            <p>📁 Upload Foto Sampah</p>
-            <span>Pilih gambar dari komputer atau galeri HP</span><br>
-            <input type="file" id="fileInput" accept="image/*">
-        </div>
+            <!-- Kotak Upload Foto / File -->
+            <div class="upload-box">
+                <p>📁 Upload Foto Sampah</p>
+                <input type="file" id="image" name="image" accept="image/*">
+            </div>
 
-        <button class="btn-primary" style="width: 100%; justify-content: center;" onclick="analyzeImage()">Analisis Gambar</button>
-        
+            <button type="submit" class="btn-primary" style="width: 100%; justify-content: center;">🚀 Analisis Gambar</button>
+        </form>
+
         <canvas id="canvas" style="display: none;"></canvas>
-        <div id="result" style="margin-top: 15px; font-weight: 500;"></div>
+
+        <!-- Menampilkan Hasil Analisis dari Backend Flask -->
+        {% if result %}
+        <div class="result-box">
+            <h3>Hasil Analisis AI:</h3>
+            <p><strong>Jenis Sampah:</strong> {{ result }}</p>
+            <p><strong>Tingkat Keyakinan:</strong> {{ confidence }}%</p>
+            <p><strong>Rekomendasi:</strong> {{ recommendation }}</p>
+            <p style="margin-top: 8px; font-size: 13px; color: #555;">{{ confidence_message }}</p>
+        </div>
+        {% endif %}
+
+        {% if error %}
+        <div style="margin-top: 15px; padding: 12px; background: #fadbd8; color: #c0392b; border-radius: 8px;">
+            {{ error }}
+        </div>
+        {% endif %}
     </div>
 
     <script>
-        let useFrontCamera = false; // Default kamera belakang untuk HP
+        let useFrontCamera = false; // Default menggunakan kamera belakang di HP
         let currentStream = null;
         let isCameraOpen = false;
 
@@ -200,7 +214,7 @@
                 })
                 .catch(err => {
                     console.error("Gagal membuka kamera: ", err);
-                    alert("Tidak dapat mengakses kamera. Pastikan izin kamera diizinkan di browser.");
+                    alert("Tidak dapat mengakses kamera. Pastikan izin kamera diizinkan di browser HP.");
                 });
         }
 
@@ -217,25 +231,24 @@
             isCameraOpen = false;
         }
 
-        function capturePhoto() {
+        // Fungsi untuk memasukkan hasil tangkapan kamera langsung ke dalam form input file
+        function captureToForm() {
             const video = document.getElementById('video');
             const canvas = document.getElementById('canvas');
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            
-            document.getElementById('result').innerText = "Gambar berhasil diambil, siap dianalisis!";
-            closeCamera();
-        }
 
-        function analyzeImage() {
-            const fileInput = document.getElementById('fileInput');
-            if (fileInput.files.length > 0) {
-                document.getElementById('result').innerText = "Menganalisis file yang di-upload...";
-            } else {
-                alert("Silakan pilih foto atau ambil gambar dari kamera terlebih dahulu!");
-            }
+            canvas.toBlob(blob => {
+                const file = new File([blob], "captured_waste.jpg", { type: "image/jpeg" });
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                document.getElementById('image').files = dataTransfer.files;
+                
+                alert("Foto berhasil diambil dari kamera! Silakan klik tombol 'Analisis Gambar'.");
+                closeCamera();
+            }, "image/jpeg", 0.9);
         }
     </script>
 </body>
