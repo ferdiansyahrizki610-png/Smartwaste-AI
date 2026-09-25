@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartWaste AI - Klasifikasi Sampah Cerdas</title>
-    <!-- Google Fonts untuk mempercantik tampilan -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>SmartWaste AI - Deteksi Sampah</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         * {
             box-sizing: border-box;
@@ -14,119 +13,171 @@
             font-family: 'Poppins', sans-serif;
         }
         body {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background-color: #f4f7f6;
             color: #333;
-            min-height: 100vh;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            padding: 20px;
+            padding: 30px 15px;
+            min-height: 100vh;
         }
-        .main-container {
+        .container {
             background: #ffffff;
             width: 100%;
-            max-width: 480px;
-            padding: 25px;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
             text-align: center;
         }
-        .header h1 {
-            font-size: 24px;
+        h2 {
             color: #2c3e50;
+            margin-bottom: 8px;
             font-weight: 600;
-            margin-bottom: 5px;
         }
-        .header p {
-            font-size: 14px;
+        p.subtitle {
             color: #7f8c8d;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+        .btn-primary {
+            background-color: #16a085;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
             margin-bottom: 20px;
         }
-        .camera-box {
-            position: relative;
-            width: 100%;
-            height: 360px;
-            background: #000;
-            border-radius: 14px;
-            overflow: hidden;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        .btn-primary:hover {
+            background-color: #1abc9c;
+        }
+        .upload-box {
+            border: 2px dashed #bdc3c7;
+            border-radius: 12px;
+            padding: 30px 20px;
+            background: #fafbfc;
+            margin-bottom: 20px;
+            transition: border-color 0.3s;
+        }
+        .upload-box:hover {
+            border-color: #16a085;
+        }
+        .upload-box img.icon {
+            width: 48px;
+            margin-bottom: 10px;
+        }
+        .upload-box p {
+            font-size: 14px;
+            color: #34495e;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+        .upload-box span {
+            font-size: 12px;
+            color: #95a5a6;
+        }
+        input[type="file"] {
+            margin-top: 10px;
+            font-size: 13px;
+        }
+        /* Area Kamera yang awalnya tersembunyi, akan muncul saat tombol Buka Kamera diklik */
+        #camera-section {
+            display: none;
             margin-bottom: 20px;
         }
         video {
             width: 100%;
-            height: 100%;
+            max-height: 350px;
+            border-radius: 10px;
+            background: #000;
             object-fit: cover;
         }
-        .btn-container {
+        .camera-controls {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             justify-content: center;
+            margin-top: 10px;
         }
-        .btn {
-            flex: 1;
-            padding: 12px 15px;
-            font-size: 15px;
-            font-weight: 500;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        .btn-toggle {
+        .btn-secondary {
             background-color: #34495e;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            font-size: 14px;
+            border-radius: 6px;
+            cursor: pointer;
         }
-        .btn-toggle:hover {
+        .btn-secondary:hover {
             background-color: #2c3e50;
         }
-        .btn-capture {
-            background-color: #27ae60;
+        .btn-danger {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            font-size: 14px;
+            border-radius: 6px;
+            cursor: pointer;
         }
-        .btn-capture:hover {
-            background-color: #219653;
-        }
-        #result {
-            margin-top: 15px;
-            font-size: 15px;
-            font-weight: 500;
-            color: #2c3e50;
+        .btn-danger:hover {
+            background-color: #c0392b;
         }
     </style>
 </head>
 <body>
 
-    <div class="main-container">
-        <div class="header">
-            <h1>SmartWaste AI</h1>
-            <p>Sistem Deteksi dan Klasifikasi Sampah Otomatis</p>
-        </div>
-        
-        <!-- Kotak Tampilan Kamera -->
-        <div class="camera-box">
+    <div class="container">
+        <h2>🔍 Deteksi Sampah</h2>
+        <p class="subtitle">Upload foto atau ambil gambar menggunakan kamera langsung untuk dianalisis.</p>
+
+        <!-- Tombol untuk Membuka Kamera -->
+        <button class="btn-primary" onclick="toggleCamera()">📷 Buka Kamera</button>
+
+        <!-- Bagian Tampilan Kamera (Live Stream) -->
+        <div id="camera-section">
             <video id="video" autoplay playsinline></video>
+            <div class="camera-controls">
+                <button class="btn-secondary" onclick="switchCamera()">🔄 Tukar Kamera</button>
+                <button class="btn-primary" onclick="capturePhoto()">📸 Ambil & Analisis</button>
+                <button class="btn-danger" onclick="closeCamera()">❌ Tutup</button>
+            </div>
         </div>
-        
-        <!-- Tombol Aksi -->
-        <div class="btn-container">
-            <button class="btn btn-toggle" onclick="switchCamera()">
-                🔄 Tukar Kamera
-            </button>
-            <button class="btn btn-capture" onclick="captureImage()">
-                📸 Deteksi
-            </button>
+
+        <!-- Kotak Upload Foto Asli -->
+        <div class="upload-box">
+            <p>📁 Upload Foto Sampah</p>
+            <span>Pilih gambar dari komputer atau galeri HP</span><br>
+            <input type="file" id="fileInput" accept="image/*">
         </div>
+
+        <button class="btn-primary" style="width: 100%; justify-content: center;" onclick="analyzeImage()">Analisis Gambar</button>
         
         <canvas id="canvas" style="display: none;"></canvas>
-        <div id="result"></div>
+        <div id="result" style="margin-top: 15px; font-weight: 500;"></div>
     </div>
 
     <script>
-        let useFrontCamera = false; // Default menggunakan kamera belakang (environment) di HP
+        let useFrontCamera = false; // Default kamera belakang untuk HP
         let currentStream = null;
+        let isCameraOpen = false;
+
+        function toggleCamera() {
+            const section = document.getElementById('camera-section');
+            if (!isCameraOpen) {
+                section.style.display = 'block';
+                startCamera();
+                isCameraOpen = true;
+            } else {
+                closeCamera();
+            }
+        }
 
         function startCamera() {
             if (currentStream) {
@@ -148,24 +199,25 @@
                     videoElement.srcObject = stream;
                 })
                 .catch(err => {
-                    console.error("Gagal mengakses kamera: ", err);
-                    alert("Tidak dapat mengakses kamera. Pastikan izin kamera telah diaktifkan.");
+                    console.error("Gagal membuka kamera: ", err);
+                    alert("Tidak dapat mengakses kamera. Pastikan izin kamera diizinkan di browser.");
                 });
         }
 
-        // Fungsi untuk menukar kamera depan dan belakang
         function switchCamera() {
             useFrontCamera = !useFrontCamera;
             startCamera();
         }
 
-        // Jalankan kamera otomatis saat halaman dibuka
-        window.addEventListener('load', () => {
-            startCamera();
-        });
+        function closeCamera() {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+            }
+            document.getElementById('camera-section').style.display = 'none';
+            isCameraOpen = false;
+        }
 
-        // Fungsi contoh tangkap gambar untuk proses AI
-        function captureImage() {
+        function capturePhoto() {
             const video = document.getElementById('video');
             const canvas = document.getElementById('canvas');
             canvas.width = video.videoWidth;
@@ -173,8 +225,17 @@
             const ctx = canvas.getContext('2d');
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             
-            document.getElementById('result').innerText = "Menganalisis sampah...";
-            // Di sini kamu bisa menambahkan logika fetch API untuk mengirim gambar ke backend Flask
+            document.getElementById('result').innerText = "Gambar berhasil diambil, siap dianalisis!";
+            closeCamera();
+        }
+
+        function analyzeImage() {
+            const fileInput = document.getElementById('fileInput');
+            if (fileInput.files.length > 0) {
+                document.getElementById('result').innerText = "Menganalisis file yang di-upload...";
+            } else {
+                alert("Silakan pilih foto atau ambil gambar dari kamera terlebih dahulu!");
+            }
         }
     </script>
 </body>
