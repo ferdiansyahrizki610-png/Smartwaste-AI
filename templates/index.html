@@ -1,230 +1,135 @@
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartWaste AI</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>SmartWaste AI - Deteksi Sampah</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+        }
+        h2 {
+            color: #333;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        video {
+            width: 100%;
+            max-height: 400px;
+            border-radius: 8px;
+            background: #000;
+            object-fit: cover;
+        }
+        .btn-group {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        button {
+            padding: 10px 15px;
+            font-size: 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            color: #fff;
+        }
+        #btnToggle {
+            background-color: #3498db;
+        }
+        #btnToggle:hover {
+            background-color: #2980b9;
+        }
+        #btnCapture {
+            background-color: #2ecc71;
+        }
+        #btnCapture:hover {
+            background-color: #27ae60;
+        }
+    </style>
 </head>
-
 <body>
 
-    <header>
-        <div class="logo">
-            ♻️ SmartWaste AI
+    <div class="container">
+        <h2>SmartWaste AI Scanner</h2>
+        
+        <!-- Elemen Video Kamera -->
+        <video id="video" autoplay playsinline></video>
+        
+        <div class="btn-group">
+            <!-- Tombol Tukar Kamera -->
+            <button id="btnToggle" onclick="switchCamera()">🔄 Tukar Kamera</button>
+            <!-- Tombol Tangkap / Deteksi (Opsional) -->
+            <button id="btnCapture" onclick="captureImage()">📸 Deteksi Sampah</button>
         </div>
+        
+        <canvas id="canvas" style="display: none;"></canvas>
+        <div id="result" style="margin-top: 15px; font-weight: bold;"></div>
+    </div>
 
-        <nav>
-            <a href="/">Home</a>
-            <a href="#deteksi">Deteksi</a>
-            <a href="#edukasi">Edukasi</a>
-            <a href="#tentang">Tentang</a>
-        </nav>
-    </header>
-
-
-    <main>
-
-        <section class="hero">
-            <div class="hero-text">
-                <h1>
-                    Kenali Sampahmu,
-                    <span>Jaga Lingkunganmu.</span>
-                </h1>
-                <p>
-                    SmartWaste AI membantu mengenali jenis sampah menggunakan teknologi Artificial Intelligence.
-                </p>
-                <a href="#deteksi" class="button">
-                    🔍 Mulai Deteksi
-                </a>
-            </div>
-        </section>
-
-
-        <section id="deteksi" class="detection">
-
-            <h2>🔍 Deteksi Sampah</h2>
-            <p>Upload foto atau ambil gambar menggunakan kamera langsung untuk dianalisis.</p>
-
-            <!-- Bagian Kamera Langsung -->
-            <div class="camera-container" style="margin: 20px 0; text-align: center;">
-                <video id="video" width="100%" style="max-width: 350px; border-radius: 12px; display: none; background: #000;" autoplay playsinline></video>
-                <canvas id="canvas" style="display: none;"></canvas>
-                <div style="margin-top: 10px;">
-                    <button type="button" id="btn-start-camera" onclick="startCamera()" style="padding: 10px 18px; background: #2b7a78; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">📷 Buka Kamera</button>
-                    <button type="button" id="btn-take-photo" onclick="takePhoto()" style="padding: 10px 18px; background: #e25822; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; display: none;">📸 Ambil Foto</button>
-                </div>
-            </div>
-
-            <!-- Form Upload -->
-            <form action="/upload" method="POST" enctype="multipart/form-data">
-
-                <div class="upload-box">
-                    <div class="upload-icon">
-                        📁
-                    </div>
-
-                    <h3>
-                        Upload Foto Sampah
-                    </h3>
-
-                    <p>
-                        Pilih gambar dari komputer atau galeri HP
-                    </p>
-
-                    <input type="file" name="image" id="file-input" accept="image/*">
-                </div>
-
-                <button type="submit" style="margin-top: 15px;">
-                    🤖 Analisis Gambar
-                </button>
-
-            </form>
-
-            <!-- Tampilan Error jika ada -->
-            {% if error %}
-            <div style="background: #ffebee; color: #c62828; padding: 15px; border-radius: 8px; margin-top: 20px;">
-                <p>{{ error }}</p>
-            </div>
-            {% endif %}
-
-            <!-- Tampilan Hasil Analisis -->
-            {% if result %}
-            <div class="result-card" style="background: #f9f9f9; padding: 20px; border-radius: 12px; margin-top: 25px; border: 1px solid #ddd;">
-                <h2>🤖 Hasil Analisis AI</h2>
-
-                {% if image %}
-                <img src="{{ url_for('static', filename='uploads/' + image) }}" alt="Gambar sampah" style="max-width: 300px; width: 100%; border-radius: 12px; margin: 15px 0;">
-                {% endif %}
-
-                <h3>Jenis Sampah: {{ result }}</h3>
-                <p>Tingkat Kepercayaan: <strong>{{ confidence }}%</strong></p>
-                <p style="margin: 10px 0; font-weight: 500; color: #333;">{{ confidence_message }}</p>
-                <p><strong>Rekomendasi Penanganan:</strong></p>
-                <p>{{ recommendation }}</p>
-            </div>
-            {% endif %}
-
-            <!-- Bagian Riwayat (History) Deteksi -->
-            {% if history %}
-            <div class="history-section" style="margin-top: 40px; border-top: 2px dashed #ddd; padding-top: 20px;">
-                <h3>📜 Riwayat Deteksi Terakhir</h3>
-                <div class="history-list" style="display: flex; gap: 15px; overflow-x: auto; padding: 10px 0;">
-                    {% for item in history %}
-                    <div style="background: white; border: 1px solid #ccc; padding: 10px; border-radius: 8px; min-width: 140px; text-align: center; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-                        <img src="{{ url_for('static', filename='uploads/' + item.image) }}" alt="Riwayat" style="width: 70px; height: 70px; object-fit: cover; border-radius: 6px;">
-                        <p style="font-size: 14px; font-weight: bold; margin: 8px 0 3px 0; color: #2b7a78;">{{ item.result }}</p>
-                        <p style="font-size: 12px; color: #666; margin: 0;">{{ item.confidence }}%</p>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
-
-        </section>
-
-
-        <section id="edukasi" class="education">
-            <h2>📚 Edukasi Sampah</h2>
-
-            <div class="cards">
-                <div class="card">
-                    <div>🥤</div>
-                    <h3>Plastik</h3>
-                    <p>Sampah berbahan plastik yang dapat dipilah dan didaur ulang.</p>
-                </div>
-
-                <div class="card">
-                    <div>🍃</div>
-                    <h3>Organik</h3>
-                    <p>Sampah seperti daun dan sisa makanan yang mudah terurai.</p>
-                </div>
-
-                <div class="card">
-                    <div>🥫</div>
-                    <h3>Logam</h3>
-                    <p>Sampah seperti kaleng dan bahan logam lainnya.</p>
-                </div>
-
-                <div class="card">
-                    <div>🍾</div>
-                    <h3>Kaca</h3>
-                    <p>Sampah berbahan kaca yang dapat diproses kembali.</p>
-                </div>
-            </div>
-        </section>
-
-
-        <section id="tentang" class="about">
-            <h2>♻️ Tentang SmartWaste AI</h2>
-            <p>
-                SmartWaste AI adalah aplikasi berbasis website yang dirancang untuk membantu pengguna mengenali dan memahami jenis sampah menggunakan teknologi Artificial Intelligence.
-            </p>
-        </section>
-
-    </main>
-
-
-    <footer>
-        <p>© 2026 SmartWaste AI</p>
-        <p>Artificial Intelligence for a Cleaner Future 🌱</p>
-    </footer>
-
-
-    <!-- Script JavaScript untuk Fitur Kamera -->
     <script>
-        async function startCamera() {
-            const video = document.getElementById('video');
-            const btnStart = document.getElementById('btn-start-camera');
-            const btnTake = document.getElementById('btn-take-photo');
+        let useFrontCamera = false; // Default menggunakan kamera belakang (environment)
+        let currentStream = null;
 
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                video.srcObject = stream;
-                video.style.display = 'block';
-                btnTake.style.display = 'inline-block';
-                btnStart.textContent = '🔄 Tutup / Reset Kamera';
-                btnStart.onclick = stopCamera;
-            } catch (err) {
-                alert("Tidak dapat mengakses kamera. Pastikan izin kamera diizinkan oleh browser.\nError: " + err);
+        function startCamera() {
+            // Hentikan stream kamera sebelumnya jika ada agar tidak bentrok
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
             }
+
+            const constraints = {
+                video: {
+                    facingMode: useFrontCamera ? "user" : "environment",
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                }
+            };
+
+            navigator.mediaDevices.getUserMedia(constraints)
+                .then(stream => {
+                    currentStream = stream;
+                    const videoElement = document.getElementById('video');
+                    videoElement.srcObject = stream;
+                })
+                .catch(err => {
+                    console.error("Gagal mengakses kamera: ", err);
+                    alert("Tidak dapat mengakses kamera. Pastikan izin kamera diizinkan di browser HP Anda.");
+                });
         }
 
-        function stopCamera() {
-            const video = document.getElementById('video');
-            if (video.srcObject) {
-                const stream = video.srcObject;
-                stream.getTracks().forEach(track => track.stop());
-                video.srcObject = null;
-            }
-            video.style.display = 'none';
-            document.getElementById('btn-take-photo').style.display = 'none';
-            const btnStart = document.getElementById('btn-start-camera');
-            btnStart.textContent = '📷 Buka Kamera';
-            btnStart.onclick = startCamera;
+        // Fungsi untuk menukar kamera depan dan belakang
+        function switchCamera() {
+            useFrontCamera = !useFrontCamera;
+            startCamera();
         }
 
-        function takePhoto() {
+        // Jalankan kamera saat halaman pertama kali dibuka
+        window.addEventListener('load', () => {
+            startCamera();
+        });
+
+        // Contoh fungsi tangkap gambar (jika ingin dikirim ke backend Flask)
+        function captureImage() {
             const video = document.getElementById('video');
             const canvas = document.getElementById('canvas');
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-            canvas.toBlob((blob) => {
-                const file = new File([blob], "camera_capture.jpg", { type: "image/jpeg" });
-                const container = new DataTransfer();
-                container.items.add(file);
-                document.getElementById('file-input').files = container.files;
-                
-                stopCamera();
-                alert("✅ Foto berhasil diambil dari kamera! Silakan klik tombol 'Analisis Gambar' di bawah.");
-            }, "image/jpeg");
+            
+            // Gambar berhasil diambil dan bisa dikirim ke backend Flask via fetch API di sini
+            document.getElementById('result').innerText = "Memproses gambar...";
         }
     </script>
-
 </body>
-
 </html>
