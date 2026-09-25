@@ -2,6 +2,11 @@ from flask import Flask, render_template, request
 import os
 import base64
 from werkzeug.utils import secure_filename
+import torch
+
+# Batasi thread PyTorch agar tidak membuat server Railway freeze/hang
+torch.set_num_threads(1)
+
 from ultralytics import YOLO
 
 app = Flask(__name__)
@@ -190,7 +195,7 @@ def upload():
     elif confidence_percent < 70:
         confidence_message = "⚠️ Tingkat keyakinan AI sedang. Hasil dapat berubah jika foto berbeda."
     else:
-        confidence_message = "✅ AI cukup yakin dengan hasil klasifikasi ini."
+        confidence_message = "✅ AI cukup yakin dengan klasifikasi ini."
 
     # ==================================================
     # SIMPAN KE RIWAYAT (HISTORY)
