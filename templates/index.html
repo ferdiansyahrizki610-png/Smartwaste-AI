@@ -3,86 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartWaste AI - Deteksi Sampah</title>
+    <title>SmartWaste AI - Klasifikasi Sampah Cerdas</title>
+    <!-- Google Fonts untuk mempercantik tampilan -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background-color: #f4f4f9;
+        * {
+            box-sizing: border-box;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
         }
-        h2 {
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             color: #333;
-        }
-        .container {
-            max-width: 500px;
-            margin: 0 auto;
-            background: #fff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .main-container {
+            background: #ffffff;
+            width: 100%;
+            max-width: 480px;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 24px;
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .header p {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-bottom: 20px;
+        }
+        .camera-box {
+            position: relative;
+            width: 100%;
+            height: 360px;
+            background: #000;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+            margin-bottom: 20px;
         }
         video {
             width: 100%;
-            max-height: 400px;
-            border-radius: 8px;
-            background: #000;
+            height: 100%;
             object-fit: cover;
         }
-        .btn-group {
-            margin-top: 15px;
+        .btn-container {
             display: flex;
-            gap: 10px;
+            gap: 12px;
             justify-content: center;
         }
-        button {
-            padding: 10px 15px;
-            font-size: 16px;
+        .btn {
+            flex: 1;
+            padding: 12px 15px;
+            font-size: 15px;
+            font-weight: 500;
             border: none;
-            border-radius: 6px;
+            border-radius: 10px;
             cursor: pointer;
+            transition: all 0.3s ease;
             color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
-        #btnToggle {
-            background-color: #3498db;
+        .btn-toggle {
+            background-color: #34495e;
         }
-        #btnToggle:hover {
-            background-color: #2980b9;
+        .btn-toggle:hover {
+            background-color: #2c3e50;
         }
-        #btnCapture {
-            background-color: #2ecc71;
-        }
-        #btnCapture:hover {
+        .btn-capture {
             background-color: #27ae60;
+        }
+        .btn-capture:hover {
+            background-color: #219653;
+        }
+        #result {
+            margin-top: 15px;
+            font-size: 15px;
+            font-weight: 500;
+            color: #2c3e50;
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h2>SmartWaste AI Scanner</h2>
+    <div class="main-container">
+        <div class="header">
+            <h1>SmartWaste AI</h1>
+            <p>Sistem Deteksi dan Klasifikasi Sampah Otomatis</p>
+        </div>
         
-        <!-- Elemen Video Kamera -->
-        <video id="video" autoplay playsinline></video>
+        <!-- Kotak Tampilan Kamera -->
+        <div class="camera-box">
+            <video id="video" autoplay playsinline></video>
+        </div>
         
-        <div class="btn-group">
-            <!-- Tombol Tukar Kamera -->
-            <button id="btnToggle" onclick="switchCamera()">🔄 Tukar Kamera</button>
-            <!-- Tombol Tangkap / Deteksi (Opsional) -->
-            <button id="btnCapture" onclick="captureImage()">📸 Deteksi Sampah</button>
+        <!-- Tombol Aksi -->
+        <div class="btn-container">
+            <button class="btn btn-toggle" onclick="switchCamera()">
+                🔄 Tukar Kamera
+            </button>
+            <button class="btn btn-capture" onclick="captureImage()">
+                📸 Deteksi
+            </button>
         </div>
         
         <canvas id="canvas" style="display: none;"></canvas>
-        <div id="result" style="margin-top: 15px; font-weight: bold;"></div>
+        <div id="result"></div>
     </div>
 
     <script>
-        let useFrontCamera = false; // Default menggunakan kamera belakang (environment)
+        let useFrontCamera = false; // Default menggunakan kamera belakang (environment) di HP
         let currentStream = null;
 
         function startCamera() {
-            // Hentikan stream kamera sebelumnya jika ada agar tidak bentrok
             if (currentStream) {
                 currentStream.getTracks().forEach(track => track.stop());
             }
@@ -103,7 +149,7 @@
                 })
                 .catch(err => {
                     console.error("Gagal mengakses kamera: ", err);
-                    alert("Tidak dapat mengakses kamera. Pastikan izin kamera diizinkan di browser HP Anda.");
+                    alert("Tidak dapat mengakses kamera. Pastikan izin kamera telah diaktifkan.");
                 });
         }
 
@@ -113,12 +159,12 @@
             startCamera();
         }
 
-        // Jalankan kamera saat halaman pertama kali dibuka
+        // Jalankan kamera otomatis saat halaman dibuka
         window.addEventListener('load', () => {
             startCamera();
         });
 
-        // Contoh fungsi tangkap gambar (jika ingin dikirim ke backend Flask)
+        // Fungsi contoh tangkap gambar untuk proses AI
         function captureImage() {
             const video = document.getElementById('video');
             const canvas = document.getElementById('canvas');
@@ -127,8 +173,8 @@
             const ctx = canvas.getContext('2d');
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             
-            // Gambar berhasil diambil dan bisa dikirim ke backend Flask via fetch API di sini
-            document.getElementById('result').innerText = "Memproses gambar...";
+            document.getElementById('result').innerText = "Menganalisis sampah...";
+            // Di sini kamu bisa menambahkan logika fetch API untuk mengirim gambar ke backend Flask
         }
     </script>
 </body>
