@@ -2,7 +2,7 @@ FROM python:3.10-slim
 
 WORKDIR /app
 
-# Install system dependencies yang kompatibel dengan OpenCV modern
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     libgl1 \
     libglib2.0-0 \
@@ -10,6 +10,9 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
+
+# Paksa instal PyTorch versi stabil yang kompatibel dengan YOLO
+RUN pip install --no-cache-dir torch<2.6.0 torchvision<2.6.0
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
