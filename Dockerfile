@@ -11,8 +11,8 @@ RUN apt-get update && apt-get install -y \
 
 COPY requirements.txt .
 
-# Paksa instal PyTorch versi stabil yang kompatibel dengan YOLO
-RUN pip install --no-cache-dir torch<2.6.0 torchvision<2.6.0
+# Menggunakan tanda petik agar tanda < tidak error di terminal Linux
+RUN pip install --no-cache-dir "torch<2.6.0" "torchvision<2.6.0"
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
