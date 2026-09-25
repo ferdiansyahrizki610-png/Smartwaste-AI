@@ -11,7 +11,8 @@ RUN apt-get update && apt-get install -y \
 
 COPY requirements.txt .
 
-# Install PyTorch dan Ultralytics versi terbaru yang mendukung model C3k2
+# Install numpy yang stabil terlebih dahulu, lalu torch dan ultralytics
+RUN pip install --no-cache-dir "numpy<2.0.0"
 RUN pip install --no-cache-dir "torch<2.6.0" "torchvision<2.6.0"
 RUN pip install --no-cache-dir ultralytics>=8.3.0
 RUN pip install --no-cache-dir -r requirements.txt
